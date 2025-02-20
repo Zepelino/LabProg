@@ -21,13 +21,25 @@ def save_records(records):
     with open(RECORDS_FILE, "w") as file:
         json.dump(records, file, indent=4)  # Salva os dados no arquivo JSON com formatação
 
-# Função para adicionar um novo recorde
-def add_record(name, score):
+# Função para adicionar ou atualizar um recorde
+def add_or_update_record(name, score):
     records = load_records()
-    # Gera um ID único (último ID + 1 ou 1 se a lista estiver vazia)
-    new_id = records[-1]["id"] + 1 if records else 1
+    
+    # Verifica se já existe um recorde com o mesmo nome
+    for record in records:
+        if record["name"] == name:
+            # Se a nova pontuação for maior, atualiza o recorde
+            if score > record["score"]:
+                record["score"] = score
+                save_records(records)
+                return True
+            return  False
+    
+    # Se não existir um recorde com o mesmo nome, adiciona um novo
+    new_id = records[-1]["id"] + 1 if records else 1  # Gera um ID único
     records.append({"id": new_id, "name": name, "score": score})
     save_records(records)
+    return True
 
 # Função para deletar um recorde pelo ID
 def delete_record_by_id(record_id):
