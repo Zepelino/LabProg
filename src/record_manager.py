@@ -1,26 +1,25 @@
-# record_manager.py
+import json
 
 # Caminho do arquivo onde os recordes serão salvos
-RECORDS_FILE = "records.txt"
+RECORDS_FILE = "src/records.json"
 
-# Função para carregar os recordes do arquivo
+# Função para carregar os recordes do arquivo JSON
 def load_records():
     try:
         with open(RECORDS_FILE, "r") as file:
-            records = []
-            for line in file.readlines():
-                record_id, name, score = line.strip().split(",")
-                records.append({"id": int(record_id), "name": name, "score": int(score)})
+            records = json.load(file)  # Carrega os dados do arquivo JSON
             return records
     except FileNotFoundError:
         # Se o arquivo não existir, retorna uma lista vazia
         return []
+    except json.JSONDecodeError:
+        # Se o arquivo estiver corrompido ou vazio, retorna uma lista vazia
+        return []
 
-# Função para salvar os recordes no arquivo
+# Função para salvar os recordes no arquivo JSON
 def save_records(records):
     with open(RECORDS_FILE, "w") as file:
-        for record in records:
-            file.write(f"{record['id']},{record['name']},{record['score']}\n")
+        json.dump(records, file, indent=4)  # Salva os dados no arquivo JSON com formatação
 
 # Função para adicionar um novo recorde
 def add_record(name, score):

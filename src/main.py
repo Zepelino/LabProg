@@ -1,11 +1,14 @@
 import pygame
 import random
+import record_manager
 
 font = 0
 
 player = {}
 gravity = 500
 dead = False
+
+STATE = 0 # 0 - Main Menu; 1 - Game; 2 - Death Screen
 
 default_obstacle = {
                 'image': None,
@@ -50,7 +53,13 @@ def new_obstacle():
 
     return new_obs
 
-def start():
+
+def start_menu():
+    global dead
+    dead = True
+
+
+def start_game():
     global font, player, obstacles, default_obstacle, dead, points, obs_spawn_timer
 
     #setting player up
@@ -58,6 +67,7 @@ def start():
     sprite = pygame.image.load("res\images\jacaré.jpg").convert()
     sprite = pygame.transform.scale(sprite, (64,64))
     player = {
+                'name': 'adalberto',
                 'image': sprite,
                 'pos': {'x': 50, 'y': 296},
                 'vel': {'x': 0, 'y': -350},
@@ -76,17 +86,25 @@ def start():
 
     font = pygame.font.Font(None, size=30)
 
+    STATE = 1
+
 def die():
-    global dead, player, jump_force
+    global dead, player, points
     dead = True
     player['vel']['y'] = player['jump_force']
+
+    record_manager.add_record(player['name'], points)
+    #conversar com o módulo de pontuação
+
+    STATE = 2
 
 def process(delta):
     global player, obstacles, collectables, obs_spawn_timer, default_obstacle, points
 
-    player['vel']['y'] += gravity * delta
-    #player['pos']['x'] += player['dir']['x'] * 100 * delta
-    player['pos']['y'] += player['vel']['y'] * delta
+    if STATE == 1 or STATE == 2:
+        player['vel']['y'] += gravity * delta
+        #player['pos']['x'] += player['dir']['x'] * 100 * delta
+        player['pos']['y'] += player['vel']['y'] * delta
 
     if dead:
         return
@@ -128,6 +146,9 @@ def process(delta):
 
 def physics_process(delta):
     global player, obstacles, collectables, dead, points
+    
+    if STATE != 1:
+        return
 
     if dead:
         return
@@ -176,7 +197,7 @@ def handle_input(event: pygame.Event):
             player['dir']['x'] -= 1
         
         if (event.key == pygame.K_SPACE or event.key == pygame.K_RETURN) and dead:
-            start()
+            start_game()
     
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_UP:
@@ -229,7 +250,7 @@ if __name__ == '__main__':
     
     delta_time = 0.1
 
-    start()
+    start_menu()
     while running:
 
         for event in pygame.event.get():

@@ -24,7 +24,7 @@ font = pygame.font.Font(None, 74)
 small_font = pygame.font.Font(None, 50)
 tiny_font = pygame.font.Font(None, 36)
 
-# Carrega os recordes do arquivo
+# Carrega os recordes do arquivo JSON
 records = record_manager.load_records()
 
 # Função para desenhar texto na tela
@@ -40,7 +40,8 @@ def draw_button(surface, color, x, y, width, height, text, text_color):
     draw_text(text, small_font, text_color, surface, x + width / 2, y + height / 2)
 
 # Função para desenhar o painel de recordes
-def draw_records_panel(surface, recordes):
+def draw_records_panel(surface):
+    global records  # Usa a variável global records
     panel_width = 300
     panel_height = SCREEN_HEIGHT
     panel_x = SCREEN_WIDTH - panel_width
@@ -53,7 +54,7 @@ def draw_records_panel(surface, recordes):
     draw_text("Recordes", small_font, BLACK, surface, panel_x + panel_width / 2, 50)
 
     # Desenha cada registro
-    for i, record in enumerate(recordes):
+    for i, record in enumerate(records):
         record_y = 100 + i * 60
         # Nome e pontuação
         draw_text(f"{record['name']}: {record['score']}", tiny_font, BLACK, surface, panel_x + 100, record_y + 20)
@@ -64,7 +65,6 @@ def draw_records_panel(surface, recordes):
         # Verifica se o botão de exclusão foi clicado
         mouse_pos = pygame.mouse.get_pos()
         if delete_button.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0]:
-            global records
             record_manager.delete_record_by_id(record["id"])  # Deleta o recorde pelo ID
             records = record_manager.load_records()  # Recarrega a lista de recordes
             pygame.time.delay(200)  # Pequeno delay para evitar múltiplos cliques
@@ -86,7 +86,7 @@ def main_menu():
         draw_button(screen, RED, quit_button.x, quit_button.y, quit_button.width, quit_button.height, "Sair", BLACK)
 
         # Desenha o painel de recordes
-        draw_records_panel(screen, records)
+        draw_records_panel(screen)
 
         # Verifica eventos
         for event in pygame.event.get():
