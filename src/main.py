@@ -5,7 +5,6 @@ font = 0
 
 player = {}
 gravity = 500
-jump_force = -350
 dead = False
 
 default_obstacle = {
@@ -20,21 +19,38 @@ default_obstacle = {
                 'coll': False,
             }
 
+default_collectable = {
+                'image': None,
+                'pos': {'x': 700, 'y': 0},
+                'x_vel': 250,
+                'size': (64, 64),
+                'hitbox': 0,
+                'valuable': True,
+            }
+
 obstacles = []
+collectables = []
 
 obs_spawn_timer = 3.5
 
 points = 0
 
 def new_obstacle():
-    global default_obstacle
+    global default_obstacle, default_collectable
     new_obs = default_obstacle.copy()
     new_obs['pos'] = {'x': 700, 'y': random.randint(-370, 0)}
     new_obs['size'] = (100, 500)
     new_obs['gap'] = random.randint(80, 150)
+
+    if random.randint(0,100) < 30:
+        new_collec = default_collectable.copy()
+        new_collec['pos'] = {'x': 850, 'y': random.randint(200, 400)}
+        collectables.append(new_collec)
+        print("coletável")
+
     return new_obs
 
-def init():
+def start():
     global font, player, obstacles, default_obstacle, dead, points, obs_spawn_timer
 
     #setting player up
@@ -44,10 +60,11 @@ def init():
     player = {
                 'image': sprite,
                 'pos': {'x': 50, 'y': 296},
-                'vel': {'x': 0, 'y': jump_force},
+                'vel': {'x': 0, 'y': -350},
                 'dir': {'x': 0, 'y': 0},
                 'size': sprite.get_size(),
-                'hitbox': 0
+                'hitbox': 0,
+                'jump_force': -350
             }
 
     #setting obstacle up
@@ -59,9 +76,13 @@ def init():
 
     font = pygame.font.Font(None, size=30)
 
+def die():
+    global dead, player, jump_force
+    dead = True
+    player['vel']['y'] = player['jump_force']
 
 def process(delta):
-    global player, obstacles, obs_spawn_timer, default_obstacle, points
+    global player, obstacles, collectables, obs_spawn_timer, default_obstacle, points
 
     player['vel']['y'] += gravity * delta
     #player['pos']['x'] += player['dir']['x'] * 100 * delta
@@ -83,6 +104,15 @@ def process(delta):
         if obs['pos']['x'] < -100:
             obstacles.remove(obs)
     
+    for collec in collectables:
+        if dead:
+            break
+
+        collec['pos']['x'] -= collec['x_vel'] * delta
+
+        if not collec['valuable'] or collec['pos']['x'] <= -100:
+            collectables.remove(collec)
+
     obs_spawn_timer -= delta
     if obs_spawn_timer <= 0:
         obs_spawn_timer = random.uniform(1.2, 2.5)
@@ -90,11 +120,14 @@ def process(delta):
         print(len(obstacles))
 
 
+    if player['pos']['y'] < 0 or player['pos']['y'] > 640 - player['size'][1]:
+        die()
+
     #print(player['vel'])
     
 
 def physics_process(delta):
-    global player, obstacles, dead
+    global player, obstacles, collectables, dead, points
 
     if dead:
         return
@@ -111,7 +144,17 @@ def physics_process(delta):
 
         if obs['coll']:
             obs['valuable'] = False
-            dead = True
+            die()
+    
+    for collec in collectables:
+        collec['hitbox'] = pygame.Rect(collec['pos']['x'], collec['pos']['y'], collec['size'][0], collec['size'][1])
+
+        coll = player['hitbox'].colliderect(collec['hitbox']) 
+        if coll and collec['valuable']:
+            collec['valuable'] = False
+            points += 3
+        
+
 
 
 
@@ -133,13 +176,13 @@ def handle_input(event: pygame.Event):
             player['dir']['x'] -= 1
         
         if (event.key == pygame.K_SPACE or event.key == pygame.K_RETURN) and dead:
-            init()
+            start()
     
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_UP:
             player['dir']['y'] += 1
             if not dead:
-                player['vel']['y'] = jump_force
+                player['vel']['y'] = player['jump_force']
         if event.key == pygame.K_DOWN:
             player['dir']['y'] -= 1
             
@@ -153,11 +196,8 @@ def handle_input(event: pygame.Event):
 
 
 def render(delta, screen: pygame.Surface):
-    global font, obstacles, points
+    global font, obstacles, collectables, points
     screen.fill((255,255,255))
-
-    #render player
-    screen.blit(player['image'], (player['pos']['x'], player['pos']['y']))
 
     #render obstacle
     for obs in obstacles:
@@ -165,6 +205,14 @@ def render(delta, screen: pygame.Surface):
             continue
         pygame.draw.rect(screen, (255 * obs['coll'], 255, 0), obs['hitbox1'])
         pygame.draw.rect(screen, (255 * obs['coll'], 255, 0), obs['hitbox2'])
+    
+    for collec in collectables:
+        if not collec['hitbox']:
+            continue
+        pygame.draw.rect(screen, (0, 255, 255), collec['hitbox'])
+
+    #render player
+    screen.blit(player['image'], (player['pos']['x'], player['pos']['y']))
 
     #render text
     text = font.render(str(points), True, (0,0,0))
@@ -181,7 +229,7 @@ if __name__ == '__main__':
     
     delta_time = 0.1
 
-    init()
+    start()
     while running:
 
         for event in pygame.event.get():
