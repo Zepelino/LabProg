@@ -279,7 +279,7 @@ def handle_input(event: pygame.Event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = event.pos
             if play_button.collidepoint(mouse_pos):
-                start_game(input_text)
+                start_game(input_text.strip())
             if quit_button.collidepoint(mouse_pos):
                 return False
 
