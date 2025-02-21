@@ -128,7 +128,7 @@ def new_obstacle():
     new_obs = default_obstacle.copy()
     new_obs['pos'] = {'x': 700, 'y': random.randint(-370, 0)}
     new_obs['size'] = (100, 500)
-    new_obs['gap'] = random.randint(80, 150)
+    new_obs['gap'] = random.randint(95, 150)
 
     if random.randint(0,100) < 10:
         new_collec = default_collectable.copy()
