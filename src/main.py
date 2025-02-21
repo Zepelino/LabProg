@@ -29,7 +29,7 @@ records = None
 record = False
 
 
-difficulty_levels = ["Fácil", "Médio", "Difícil"]
+difficulty_levels = ["Fácil", "Médio", "Difícil", "CAOS"]
 selected_difficulty = 0  
 
 
@@ -58,6 +58,7 @@ obstacles = []
 collectables = []
 
 obs_spawn_timer = 3.5
+obs_spawn_times = {0: (2.8, 3.5) ,1: (1.9, 2.7) ,2: (1.2, 1.6), 3:(0.2, 0.8)}
 
 points = 0
 
@@ -228,7 +229,8 @@ def process(delta):
 
     obs_spawn_timer -= delta
     if obs_spawn_timer <= 0:
-        obs_spawn_timer = random.uniform(1.2, 2.5)
+        
+        obs_spawn_timer = random.uniform(obs_spawn_times[selected_difficulty][0], obs_spawn_times[selected_difficulty][1])
         obstacles.append(new_obstacle())
 
 
@@ -425,7 +427,7 @@ def render(delta, screen: pygame.Surface):
         global difficulty_buttons
         difficulty_buttons = []
         for i, level in enumerate(difficulty_levels):
-            button_rect = pygame.Rect((SCREEN_WIDTH - 300) / 2 - 110 + i * 75, 300, 70, 40)
+            button_rect = pygame.Rect((SCREEN_WIDTH - 300) / 2 - 135 + i * 70, 300, 70, 40)
             color = BLUE if i == selected_difficulty else GRAY  
             
             draw_button(screen, color, button_rect.x, button_rect.y, button_rect.width, button_rect.height, level, BLACK)
