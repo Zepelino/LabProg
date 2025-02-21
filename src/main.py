@@ -29,6 +29,10 @@ records = None
 record = False
 
 
+difficulty_levels = ["Fácil", "Médio", "Difícil"]
+selected_difficulty = 0  
+
+
 default_obstacle = {
                 'image': None,
                 'pos': {'x': 700, 'y': 0},
@@ -60,9 +64,9 @@ points = 0
 input_text = ""  
 input_active = False
 
-#funções auxiliares de render
+#funções auxiliares de render#############################################################
 
-# Função para desenhar texto na tela
+
 def draw_text(text, font, color, surface, x, y):
     text_obj = font.render(text, True, color)
     text_rect = text_obj.get_rect()
@@ -70,40 +74,40 @@ def draw_text(text, font, color, surface, x, y):
     surface.blit(text_obj, text_rect)
 
 
-# Função para criar botões
+
 def draw_button(surface, color, x, y, width, height, text, text_color):
     pygame.draw.rect(surface, color, (x, y, width, height))
     draw_text(text, small_font, text_color, surface, x + width / 2, y + height / 2)
 
 
-# Função para desenhar o painel de recordes
+
 def draw_records_panel(surface):
-    global records  # Usa a variável global records
+    global records  
     panel_width = 300
     panel_height = SCREEN_HEIGHT
     panel_x = SCREEN_WIDTH - panel_width
     panel_y = 0
 
-    # Desenha o fundo do painel
+    
     pygame.draw.rect(surface, GRAY, (panel_x, panel_y, panel_width, panel_height))
-
-    # Título do painel
     draw_text("Recordes", small_font, BLACK, surface, panel_x + panel_width / 2, 50)
 
-    # Desenha cada registro
+    
     for i, record in enumerate(records):
         record_y = 100 + i * 60
+        
         # Nome e pontuação
         draw_text(f"{record['name']}: {record['score']}", small_font, BLACK, surface, panel_x + 100, record_y + 20)
+        
         # Botão de exclusão
         delete_button = pygame.Rect(panel_x + 200, record_y, 35, 35)
         draw_button(surface, RED, delete_button.x, delete_button.y, delete_button.width, delete_button.height, "X", WHITE)
 
-        # Verifica se o botão de exclusão foi clicado
+        # Verifica botão de exclusão 
         mouse_pos = pygame.mouse.get_pos()
         if delete_button.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0]:
-            record_manager.delete_record_by_id(record["id"])  # Deleta o recorde pelo ID
-            records = record_manager.load_records()  # Recarrega a lista de recordes
+            record_manager.delete_record_by_id(record["id"]) 
+            records = record_manager.load_records()  # atualiza a lista de recordes
             pygame.time.delay(200)  # Pequeno delay para evitar múltiplos cliques
 
 
@@ -129,7 +133,7 @@ def new_obstacle():
         new_collec = default_collectable.copy()
         new_collec['pos'] = {'x': 850, 'y': random.randint(200, 400)}
         collectables.append(new_collec)
-        print("coletável")
+        #print("coletável")
 
     return new_obs
 
@@ -143,17 +147,15 @@ def start_menu():
     global dead
     dead = True
 
-    # Cria uma superfície para o efeito de blur
     blur_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-    blur_surface.set_alpha(128)  # Define transparência (0 = totalmente transparente, 255 = totalmente opaco)
-
+    blur_surface.set_alpha(128) 
     #start_game()
 
 
 def start_game(nome):
     global font, player, obstacles, default_obstacle, dead, points, obs_spawn_timer, STATE, record
 
-    #setting player up
+    #reseta o player
     dead = False
     sprite = pygame.image.load("res\images\jacaré.jpg").convert()
     sprite = pygame.transform.scale(sprite, (64,64))
@@ -168,7 +170,7 @@ def start_game(nome):
                 'jump_force': -350
             }
 
-    #setting obstacle up
+    #reseta os obstáculos
     obstacles = []
     obstacles.append(new_obstacle())
 
@@ -186,7 +188,7 @@ def die():
     dead = True
     player['vel']['y'] = player['jump_force']
 
-    #conversar com o módulo de pontuação
+    #conversa com o módulo de pontuação
     record = record_manager.add_or_update_record(player['name'], points)
 
     STATE = 2
@@ -270,7 +272,7 @@ def physics_process(delta):
 
 
 def handle_input(event: pygame.Event):
-    global p_direction, p_velocity
+    
     if event.type == pygame.QUIT:
         return False
     
@@ -278,28 +280,36 @@ def handle_input(event: pygame.Event):
         global input_text, input_active
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = event.pos
+
+
             if play_button.collidepoint(mouse_pos):
                 start_game(input_text.strip())
             if quit_button.collidepoint(mouse_pos):
                 return False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+
                 
-                mouse_pos = event.pos
-                # Verifica se o campo de texto foi clicado
-                if input_rect.collidepoint(mouse_pos):
-                    input_active = True
-                else:
-                    input_active = False
-                # Verifica se o botão "Jogar" foi clicado
+            # Verifica campo de texto
+            if input_rect.collidepoint(mouse_pos):
+                input_active = True
+            else:
+                input_active = False
+            
+            # Verifica botões de dificuldade 
+            global selected_difficulty
+            for button_rect, index in difficulty_buttons:
+                if button_rect.collidepoint(mouse_pos):
+                    print(index)
+                    selected_difficulty = index
+               
         
         #print(event.type)
         if event.type == pygame.KEYDOWN and input_active:
-            # Captura as teclas pressionadas
+            # Captura de teclas
             if event.key == pygame.K_BACKSPACE:
-                input_text = input_text[:-1]  # Remove o último caractere
+                input_text = input_text[:-1] 
             else:
-                input_text += event.unicode  # Adiciona o caractere digitado
+                input_text += event.unicode 
     
 
     if STATE == 2:
@@ -321,14 +331,15 @@ def handle_input(event: pygame.Event):
             if event.key == pygame.K_LEFT:
                 player['dir']['x'] -= 1
             
+            if event.key == pygame.K_SPACE and not dead:
+                player['vel']['y'] = player['jump_force']
+
             if (event.key == pygame.K_SPACE or event.key == pygame.K_RETURN) and STATE == 2:
                 start_game(player['name'])
         
         if event.type == pygame.KEYUP :
-            if event.key == pygame.K_UP or event.key == pygame.K_SPACE:
+            if event.key == pygame.K_UP:
                 player['dir']['y'] += 1
-                if not dead:
-                    player['vel']['y'] = player['jump_force']
             if event.key == pygame.K_DOWN:
                 player['dir']['y'] -= 1
                 
@@ -379,25 +390,16 @@ def render(delta, screen: pygame.Surface):
 
         
         draw_text("Você MORREU!", small_font, BLACK, screen, SCREEN_WIDTH/2, 230)
-        #text = font.render("Você MORREU!", True, (0,0,0))
-        #trect = text.get_rect()
-        #trect.center = (SCREEN_WIDTH/2, 270)
-        #screen.blit(text, trect)
 
         #pontos
         draw_text(str(points), font, BLACK, screen, SCREEN_WIDTH/2, 320)
-        #text = font.render(str(points), True, (0,0,0))
-        #trect = text.get_rect()
-        #trect.center = (SCREEN_WIDTH/2, 330)
-        #screen.blit(text, trect)
 
         if record:
             draw_text(f"NOVO RECORD! Parabéns, {player['name']}!", tiny_font, BLACK, screen, SCREEN_WIDTH/2, 280)
-            #text = font.render(f"NOVO RECORD! Parabéns, {player['name']}!", True, (0,0,0))
-            #trect = text.get_rect()
-            #trect.center = (SCREEN_WIDTH/2, 310)
-            #screen.blit(text, trect)
+
         
+        draw_text(f"Pressione barra de espaço para recomeçar", tiny_font, BLACK, screen, SCREEN_WIDTH/2, SCREEN_HEIGHT-120)
+
         global menu_button
 
         # Botão menu
@@ -416,14 +418,26 @@ def render(delta, screen: pygame.Surface):
         pygame.draw.rect(screen, (255*input_active, 255*input_active, 0), input_rect, 2)  # Desenha o retângulo do campo de texto
         draw_text(input_text, small_font, BLACK, screen, input_rect.x + input_rect.width / 2, input_rect.y + input_rect.height / 2)
 
+        # Título do seletor de dificuldades
+        draw_text("Selecione a dificuldade", tiny_font, BLACK, screen, (SCREEN_WIDTH - 300) / 2, 280)
+
+        # Botões de dificuldade
+        global difficulty_buttons
+        difficulty_buttons = []
+        for i, level in enumerate(difficulty_levels):
+            button_rect = pygame.Rect((SCREEN_WIDTH - 300) / 2 - 110 + i * 75, 300, 70, 40)
+            color = BLUE if i == selected_difficulty else GRAY  
+            
+            draw_button(screen, color, button_rect.x, button_rect.y, button_rect.width, button_rect.height, level, BLACK)
+            difficulty_buttons.append((button_rect, i))
+
         # Botão Jogar
-        play_button = pygame.Rect((SCREEN_WIDTH - 300) / 2 - 100, 250, 200, 50)
+        play_button = pygame.Rect((SCREEN_WIDTH - 300) / 2 - 100, 400, 200, 50)
         draw_button(screen, GREEN, play_button.x, play_button.y, play_button.width, play_button.height, "Jogar", BLACK)
 
         # Botão Sair
-        quit_button = pygame.Rect((SCREEN_WIDTH - 300) / 2 - 100, 350, 200, 50)
+        quit_button = pygame.Rect((SCREEN_WIDTH - 300) / 2 - 100, 500, 200, 50)
         draw_button(screen, RED, quit_button.x, quit_button.y, quit_button.width, quit_button.height, "Sair", BLACK)
-
         # Desenha o painel de recordes
         draw_records_panel(screen)
 
