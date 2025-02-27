@@ -1,5 +1,10 @@
 [
     {
+        "id": 4,
+        "name": "ronaldo",
+        "score": 5
+    },
+    {
         "id": 3,
         "name": "astolfo",
         "score": 2
@@ -8,10 +13,5 @@
         "id": 1,
         "name": "rofger",
         "score": 1
-    },
-    {
-        "id": 4,
-        "name": "ronaldo",
-        "score": 5
     }
 ]

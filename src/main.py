@@ -35,6 +35,7 @@ selected_difficulty = 1
 
 default_obstacle = {
                 'image': None,
+                'image_flip': None,
                 'pos': {'x': 700, 'y': 0},
                 'x_vel': 250,
                 'size': (100, 700),
@@ -64,6 +65,8 @@ points = 0
 
 input_text = ""  
 input_active = False
+
+debug = False
 
 #funções auxiliares de render#############################################################
 
@@ -124,11 +127,13 @@ def apply_blur(surface, blur_level=2):
 
 
 def new_obstacle():
-    global default_obstacle, default_collectable
+    global default_obstacle, default_collectable, obst_images
     new_obs = default_obstacle.copy()
     new_obs['pos'] = {'x': 700, 'y': random.randint(-370, 0)}
     new_obs['size'] = (100, 500)
     new_obs['gap'] = random.randint(95, 150)
+    new_obs['image'] = pygame.transform.scale(random.choice(obst_images), new_obs['size'])
+    new_obs['image_flip'] = pygame.transform.flip(new_obs['image'], False, True)
 
     if random.randint(0,100) < 10:
         new_collec = default_collectable.copy()
@@ -154,12 +159,22 @@ def start_menu():
 
 
 def start_game(nome):
-    global font, player, obstacles, default_obstacle, dead, points, obs_spawn_timer, STATE, record
+    global font, player, obstacles, default_obstacle, dead, points, obs_spawn_timer, STATE, record, collectables
 
     #reseta o player
     dead = False
-    sprite = pygame.image.load("res\images\jacaré.jpg").convert()
+    sprite = pygame.image.load("res\images\carinha.jpeg").convert()
+    sprite.set_colorkey(BLACK)
     sprite = pygame.transform.scale(sprite, (64,64))
+
+    global obst_images 
+    obst_images = [pygame.image.load("res\images\obst1.jpeg").convert(),
+                   pygame.image.load("res\images\obst2.jpeg").convert(),
+                   pygame.image.load("res\images\obst3.jpeg").convert(),]
+    
+    for i, img in enumerate(obst_images):
+        obst_images[i].set_colorkey(BLACK)
+
     player = {
                 'name': nome,
                 'image': sprite,
@@ -170,10 +185,14 @@ def start_game(nome):
                 'hitbox': 0,
                 'jump_force': -350
             }
+    
+    #print(pygame.math.Vector2(player['vel']['x'], player['vel']['y']).angle_to([0,0])-90)
 
     #reseta os obstáculos
     obstacles = []
     obstacles.append(new_obstacle())
+
+    collectables = []
 
     points = 0
     obs_spawn_timer = 3.5
@@ -248,14 +267,15 @@ def physics_process(delta):
     if dead:
         return
     
-    player['hitbox'] = pygame.Rect(player['pos']['x'], player['pos']['y'], player['size'][0], player['size'][1])
+    player['hitbox'] = pygame.Rect(player['pos']['x']+16, player['pos']['y']+18, player['size'][0]-16, player['size'][1]-16)
+    #player['hitbox'].center = player.
 
     for obs in obstacles:
         #if obs['pos']['x'] > 500:
         #    continue
         obs['hitbox1'] = pygame.Rect(obs['pos']['x'], obs['pos']['y'] - obs['gap'], obs['size'][0], obs['size'][1])
         obs['hitbox2'] = pygame.Rect(obs['pos']['x'], obs['pos']['y'] + obs['size'][1] + obs['gap'], obs['size'][0], obs['size'][1])
-
+        
         obs['coll'] = player['hitbox'].colliderect(obs['hitbox1']) or player['hitbox'].colliderect(obs['hitbox2'])
 
         if obs['coll']:
@@ -364,8 +384,14 @@ def render(delta, screen: pygame.Surface):
         for obs in obstacles:
             if not obs['hitbox1'] or not obs['hitbox2']:
                 continue
-            pygame.draw.rect(screen, (255 * obs['coll'], 255, 0), obs['hitbox1'])
-            pygame.draw.rect(screen, (255 * obs['coll'], 255, 0), obs['hitbox2'])
+            
+            if debug:
+                pygame.draw.rect(screen, (255 * obs['coll'], 255, 0), obs['hitbox1'])
+                pygame.draw.rect(screen, (255 * obs['coll'], 255, 0), obs['hitbox2'])
+            #print(obs["image"])
+            #print(obs)
+            screen.blit(obs["image"], (obs['hitbox1'].x , obs['hitbox1'].y))
+            screen.blit(obs["image_flip"], (obs['hitbox2'].x , obs['hitbox2'].y))
         
         for collec in collectables:
             if not collec['hitbox']:
@@ -373,7 +399,12 @@ def render(delta, screen: pygame.Surface):
             pygame.draw.rect(screen, (0, 255, 255), collec['hitbox'])
 
         #render player
+        #print(pygame.math.Vector2(250, player['vel']['y']).angle_to([0,0])-90)
+        #player['image'] = pygame.transform.rotate(player['image'], pygame.math.Vector2(250, player['vel']['y']).angle_to([0,0])-90)
         screen.blit(player['image'], (player['pos']['x'], player['pos']['y']))
+        if debug:
+            pygame.draw.rect(screen, (0, 255, 255), player['hitbox'])
+
 
     if STATE == 1:
         text = font.render(str(points), True, (0,0,0))
