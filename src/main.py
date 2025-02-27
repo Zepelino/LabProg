@@ -30,7 +30,7 @@ record = False
 
 
 difficulty_levels = ["Fácil", "Médio", "Difícil", "CAOS"]
-selected_difficulty = 0  
+selected_difficulty = 1  
 
 
 default_obstacle = {

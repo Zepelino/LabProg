@@ -34,7 +34,12 @@ def add_or_update_record(name, score):
                 return True
             return  False
     
-    new_id = records[-1]["id"] + 1 if records else 1
+    new_id = 0
+    for r in records:
+        if r["id"] >= new_id:
+            new_id = r["id"]+1
+
+    #new_id = records[-1]["id"] + 1 if records else 1
     records.append({"id": new_id, "name": name, "score": score})
     save_records(records)
     return True
