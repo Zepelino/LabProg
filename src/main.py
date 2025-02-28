@@ -163,18 +163,10 @@ def start_game(nome):
 
     #reseta o player
     dead = False
-    sprite = pygame.image.load("res\images\carinha.jpeg").convert()
-    sprite.set_colorkey(BLACK)
+    sprite = pygame.image.load("res\images\carinha.png").convert_alpha()
+    #sprite.set_colorkey(BLACK)
     sprite = pygame.transform.scale(sprite, (64,64))
-
-    global obst_images 
-    obst_images = [pygame.image.load("res\images\obst1.jpeg").convert(),
-                   pygame.image.load("res\images\obst2.jpeg").convert(),
-                   pygame.image.load("res\images\obst3.jpeg").convert(),]
     
-    for i, img in enumerate(obst_images):
-        obst_images[i].set_colorkey(BLACK)
-
     player = {
                 'name': nome,
                 'image': sprite,
@@ -185,6 +177,15 @@ def start_game(nome):
                 'hitbox': 0,
                 'jump_force': -350
             }
+
+    global obst_images 
+    obst_images = [pygame.image.load("res\images\obst1.png").convert_alpha(),
+                   pygame.image.load("res\images\obst2.png").convert_alpha(),
+                   pygame.image.load("res\images\obst3.png").convert_alpha(),]
+    
+    #for i, img in enumerate(obst_images):
+    #    obst_images[i].set_colorkey(BLACK)
+
     
     #print(pygame.math.Vector2(player['vel']['x'], player['vel']['y']).angle_to([0,0])-90)
 
