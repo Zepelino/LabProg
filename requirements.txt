@@ -1,0 +1,2 @@
+# pip install -r requirements.txt
+pygame-ce>=2.5.2
