@@ -68,11 +68,15 @@ input_active = False
 
 debug = False
 
+help_txt_alpha = 255
+
 #funções auxiliares de render#############################################################
 
 
 def draw_text(text, font, color, surface, x, y):
     text_obj = font.render(text, True, color)
+    if len(color) > 3:
+        text_obj.set_alpha(color[3])
     text_rect = text_obj.get_rect()
     text_rect.center = (x, y)
     surface.blit(text_obj, text_rect)
@@ -116,7 +120,7 @@ def draw_records_panel(surface):
 
 
 # Função para aplicar efeito de blur
-def apply_blur(surface, blur_level=2):
+def apply_blur(surface, blur_level):
     # Reduz a resolução da superfície
     small_surface = pygame.transform.scale(surface, (surface.get_width() // blur_level, surface.get_height() // blur_level))
     # Amplia a superfície de volta ao tamanho original
@@ -167,6 +171,9 @@ def start_game(nome):
     #sprite.set_colorkey(BLACK)
     sprite = pygame.transform.scale(sprite, (64,64))
     
+    global help_txt_alpha
+    help_txt_alpha = 255
+
     player = {
                 'name': nome,
                 'image': sprite,
@@ -183,6 +190,14 @@ def start_game(nome):
                    pygame.image.load("res\images\obst2.png").convert_alpha(),
                    pygame.image.load("res\images\obst3.png").convert_alpha(),]
     
+
+    global bg_image
+    bg_image = ["res/images/bg1.png",
+                "res/images/bg2.png",
+                "res/images/bg3.png",
+                "res/images/bg4.png"] 
+    bg_image = pygame.image.load(random.choice(bg_image)).convert_alpha()
+
     #for i, img in enumerate(obst_images):
     #    obst_images[i].set_colorkey(BLACK)
 
@@ -322,7 +337,7 @@ def handle_input(event: pygame.Event):
             global selected_difficulty
             for button_rect, index in difficulty_buttons:
                 if button_rect.collidepoint(mouse_pos):
-                    print(index)
+                    #print(index)
                     selected_difficulty = index
                
         
@@ -379,7 +394,11 @@ def render(delta, screen: pygame.Surface):
     #global font, obstacles, collectables, points
     screen.fill((255,255,255))
 
+    #oq renderiza qnd vivo e morrido
     if STATE == 1 or STATE == 2:
+
+        #render bg
+        screen.blit(bg_image, (0,0))
 
         #render obstacle
         for obs in obstacles:
@@ -406,17 +425,24 @@ def render(delta, screen: pygame.Surface):
         if debug:
             pygame.draw.rect(screen, (0, 255, 255), player['hitbox'])
 
-
+    #oq renderiza apenas qnd vivo
+    global help_txt_alpha
     if STATE == 1:
-        text = font.render(str(points), True, (0,0,0))
-        trect = text.get_rect()
-        trect.center = (SCREEN_WIDTH/2, 50)
-        screen.blit(text, trect)
+        draw_text(str(points), small_font, BLACK, screen, SCREEN_WIDTH/2, 50)
+        draw_text("pressione barra de espaço!", small_font, (255,0,0, help_txt_alpha), screen, SCREEN_WIDTH/2, 500)
+        if help_txt_alpha > 0:
+            #print(help_txt_alpha)
+            help_txt_alpha -= delta * 100
+            if help_txt_alpha < 0:
+                help_txt_alpha = 0
+
+        
     
+    #oq vai renderizar apenas quando morrido
     if STATE == 2:
         global blur_surface
 
-        blurred_screen = apply_blur(screen, blur_level=8)  # Nível de blur (quanto maior, mais desfocado)
+        blurred_screen = apply_blur(screen, 16)  
 
         # Desenha a superfície com blur na tela
         blur_surface.blit(blurred_screen, (0, 0))
@@ -440,6 +466,7 @@ def render(delta, screen: pygame.Surface):
         menu_button = pygame.Rect((SCREEN_WIDTH) / 2 - 150, SCREEN_HEIGHT-80, 300, 50)
         draw_button(screen, BLUE, menu_button.x, menu_button.y, menu_button.width, menu_button.height, "Menu Principal", BLACK)
 
+    #oq vai renderizar apenas no menu
     if STATE == 0:
         global play_button, quit_button
         draw_text("Flappito", font, BLACK, screen, (SCREEN_WIDTH - 300) / 2, 100)
@@ -475,7 +502,7 @@ def render(delta, screen: pygame.Surface):
         # Desenha o painel de recordes
         draw_records_panel(screen)
 
-    #show everything on screen
+    #mostra td
     pygame.display.flip()
 
 if __name__ == '__main__':
