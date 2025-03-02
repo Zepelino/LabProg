@@ -47,13 +47,14 @@ default_obstacle = {
             }
 
 default_collectable = {
-                'image': None,
                 'pos': {'x': 700, 'y': 0},
                 'x_vel': 250,
                 'size': (64, 64),
                 'hitbox': 0,
                 'valuable': True,
             }
+
+coin_image = None
 
 obstacles = []
 collectables = []
@@ -139,7 +140,7 @@ def new_obstacle():
     new_obs['image'] = pygame.transform.scale(random.choice(obst_images), new_obs['size'])
     new_obs['image_flip'] = pygame.transform.flip(new_obs['image'], False, True)
 
-    if random.randint(0,100) < 10:
+    if random.randint(0,100) < 100:
         new_collec = default_collectable.copy()
         new_collec['pos'] = {'x': 850, 'y': random.randint(200, 400)}
         collectables.append(new_collec)
@@ -190,6 +191,9 @@ def start_game(nome):
                    pygame.image.load("res\images\obst2.png").convert_alpha(),
                    pygame.image.load("res\images\obst3.png").convert_alpha(),]
     
+    global coin_image
+    coin_image = pygame.image.load("res\images\coin.png").convert_alpha()
+    coin_image = pygame.transform.scale(coin_image, (64,64))
 
     global bg_image
     bg_image = ["res/images/bg1.png",
@@ -416,7 +420,10 @@ def render(delta, screen: pygame.Surface):
         for collec in collectables:
             if not collec['hitbox']:
                 continue
-            pygame.draw.rect(screen, (0, 255, 255), collec['hitbox'])
+            
+            if debug:
+                pygame.draw.rect(screen, (0, 255, 255), collec['hitbox'])
+            screen.blit(coin_image, (collec['hitbox'].x , collec['hitbox'].y))
 
         #render player
         #print(pygame.math.Vector2(250, player['vel']['y']).angle_to([0,0])-90)
