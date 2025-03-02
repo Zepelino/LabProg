@@ -140,7 +140,7 @@ def new_obstacle():
     new_obs['image'] = pygame.transform.scale(random.choice(obst_images), new_obs['size'])
     new_obs['image_flip'] = pygame.transform.flip(new_obs['image'], False, True)
 
-    if random.randint(0,100) < 100:
+    if random.randint(0,100) < 10:
         new_collec = default_collectable.copy()
         new_collec['pos'] = {'x': 850, 'y': random.randint(200, 400)}
         collectables.append(new_collec)
